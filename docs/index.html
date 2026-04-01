@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>identicon / emiliano.sh</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0a0a0c;
+      --surface:   #111115;
+      --border:    #1e1e26;
+      --accent:    #a8b87a;
+      --accent2:   #b07a5a;
+      --muted:     #a1a1b3;
+      --text:      #8a8a96;
+      --mono:      'DM Mono', monospace;
+      --display:   'Syne', sans-serif;
+    }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      overflow: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .035;
+      pointer-events: none;
+      z-index: 100;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: .5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .corner {
+      position: fixed;
+      font-size: .65rem;
+      letter-spacing: .12em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .corner-tl { top: 1.5rem; left: 1.5rem; }
+    .corner-tr { top: 1.5rem; right: 1.5rem; text-align: right; }
+    .corner-bl { bottom: 1.5rem; left: 1.5rem; }
+    .corner-br { bottom: 1.5rem; right: 1.5rem; text-align: right; }
+    .corner-br a, .corner-tr a {
+      color: var(--muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      transition: color .2s;
+    }
+    .corner-br a:hover, .corner-tr a:hover { color: var(--text); }
+    .corner-br svg, .corner-tr svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .scene {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 2rem;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .headline {
+      font-family: var(--display);
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: -.03em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .headline em {
+      font-style: normal;
+      color: var(--accent);
+      display: inline-block;
+      position: relative;
+    }
+    .headline em::after {
+      content: '';
+      position: absolute;
+      bottom: 2px; left: 0;
+      height: 3px;
+      width: 100%;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      animation: sweep 1s .7s forwards;
+    }
+    @keyframes sweep { to { transform: scaleX(1); } }
+
+    .icon-links {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      padding-bottom: .2rem;
+    }
+    .icon-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s, transform .2s;
+    }
+    .icon-link:hover { color: var(--accent); transform: translateY(-1px); }
+    .icon-link svg { width: 18px; height: 18px; fill: currentColor; }
+
+    .top-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      animation: fadeUp .6s .05s both;
+    }
+
+    .subtitle {
+      margin-top: .6rem;
+      font-size: .75rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .subtitle span { color: var(--muted); }
+
+    .rule {
+      width: min(520px, 90vw);
+      height: 1px;
+      background: var(--border);
+      margin-top: 1.5rem;
+      animation: fadeUp .6s .35s both;
+    }
+
+    .demo {
+      margin-top: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      animation: fadeUp .6s .45s both;
+    }
+
+    .input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .input-label {
+      font-size: .6rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .seed-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: .95rem;
+      padding: .7rem 1rem;
+      width: 220px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      caret-color: var(--accent);
+    }
+    .seed-input::placeholder { color: var(--border); }
+    .seed-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .input-meta {
+      font-size: .6rem;
+      letter-spacing: .1em;
+      color: var(--border);
+      transition: color .3s;
+    }
+    .input-meta.active { color: var(--muted); }
+
+    .arrow {
+      font-size: .8rem;
+      color: var(--border);
+      letter-spacing: .05em;
+      user-select: none;
+      transition: color .3s;
+    }
+    .arrow.active { color: var(--accent); }
+
+    .icon-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .icon-label {
+      font-size: .6rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .icon-frame {
+      width: 160px;
+      height: 160px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s;
+    }
+    .icon-frame.active { border-color: var(--accent); }
+    .icon-frame svg {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      transition: opacity .15s;
+    }
+    .icon-frame::before, .icon-frame::after {
+      content: '';
+      position: absolute;
+      width: 8px; height: 8px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .icon-frame.active::before, .icon-frame.active::after { opacity: 1; }
+    .icon-frame::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+    .icon-frame::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+    .color-swatch {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .6rem;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+    .swatch-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background .3s;
+      flex-shrink: 0;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <span class="corner corner-bl">© Emiliano Rizzonelli 2026-Today</span>
+  <span class="corner corner-br">
+    <a href="https://github.com/a9sk" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    </a>
+  </span>
+
+  <div class="scene">
+
+    <div class="top-block">
+      <div class="header-row">
+        <h1 class="headline"><em>identicon</em></h1>
+        <div class="icon-links">
+          <a class="icon-link" href="https://www.npmjs.com/package/@ulti-mate-org/identicon" target="_blank" rel="noopener" title="npm package">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474C23.214 24 24 23.214 24 22.237V1.763C24 .786 23.214 0 22.237 0zm9.927 5.2h7.363v13.6h-3.68V8.88h-3.683v9.92H5.927V5.2z"/></svg>
+          </a>
+          <a class="icon-link" href="https://github.com/ulti-mate-org/identicon" target="_blank" rel="noopener" title="GitHub repo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          </a>
+        </div>
+      </div>
+      <p class="subtitle">deterministic avatar generator <span>for ulti-mate profiles</span></p>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="demo">
+      <div class="input-wrap">
+        <span class="input-label">seed</span>
+        <input
+          class="seed-input"
+          id="seedInput"
+          type="text"
+          placeholder="type a name…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="arrow" id="arrow">→</div>
+
+      <div class="icon-wrap">
+        <span class="icon-label">output</span>
+        <div class="icon-frame" id="iconFrame">
+        </div>
+        <div class="color-swatch">
+          <div class="swatch-dot" id="swatchDot"></div>
+          <span id="swatchHex">——</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import generateIdenticon from '../dist/index.js';
+
+    const input    = document.getElementById('seedInput');
+    const frame    = document.getElementById('iconFrame');
+    const arrow    = document.getElementById('arrow');
+    const dot      = document.getElementById('swatchDot');
+    const hexLabel = document.getElementById('swatchHex');
+
+    function render(seed) {
+      const isEmpty = seed.length === 0;
+      const svgStr  = generateIdenticon(seed, 5, 250);
+
+      frame.innerHTML = svgStr;
+
+      const colorMatch = svgStr.match(/fill="(#[0-9a-fA-F]{6})"/);
+      const color = colorMatch ? colorMatch[1] : '#ffffff';
+
+      dot.style.background = isEmpty ? 'var(--border)' : color;
+      hexLabel.textContent  = isEmpty ? '——' : color;
+
+      frame.classList.toggle('active', !isEmpty);
+      arrow.classList.toggle('active', !isEmpty);
+    }
+
+    render('');
+
+    input.addEventListener('input', () => render(input.value));
+  </script>
+
+</body>
+</html>
