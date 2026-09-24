@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "license": "MIT",
-  "author": "Emiliano Rizzonelli (emiliano.rizzonelli@proton.me)",
+  "author": "Ulti-Mate organization",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ulti-mate-org/identicon.git"
